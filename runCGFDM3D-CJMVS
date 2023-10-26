@@ -1,0 +1,22 @@
+#!/bin/bash
+
+MPIHOME=/home/shenzitao/opt/openmpi-4.1.6-cuda
+CUDAHOME=/home/spack/spack/opt/spack/linux-debian12-zen2/gcc-11.3.0/cuda-11.8.0-ehz25mlcpxpnrliwufrqvphysjy6gv5d
+
+
+export LD_LIBRARY_PATH=/home/shenzitao/opt/proj-8.0.1/lib:${LD_LIBRARY_PATH}
+export LD_LIBRARY_PATH=/home/shenzitao/opt/sqlite-3430200/lib:${LD_LIBRARY_PATH}
+export LD_LIBRARY_PATH=${MPIHOME}/lib:${LD_LIBRARY_PATH}
+export LD_LIBRARY_PATH=${CUDAHOME}/lib64:${LD_LIBRARY_PATH}
+export PROJ_LIB=/home/shenzitao/opt/proj-8.0.1/share/proj
+
+
+PX=`cat ./paramsDir/paramsCGFDM3D-CJMVS.json | grep "\"PX\"" | tr -cd "[0-9]"`
+PY=`cat ./paramsDir/paramsCGFDM3D-CJMVS.json | grep "\"PY\"" | tr -cd "[0-9]"`
+PZ=`cat ./paramsDir/paramsCGFDM3D-CJMVS.json | grep "\"PZ\"" | tr -cd "[0-9]"`
+
+ 
+
+RUN=${MPIHOME}/bin/mpirun
+
+${RUN} -np $(($PX*$PY*$PZ)) ./bin/CGFDM3D-CJMVS | tee ./LogDir/logCGFDM3D-CJMVS
