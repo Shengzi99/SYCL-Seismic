@@ -231,7 +231,7 @@ long long srcCoord2Index( GRID grid, float Depth, COORD coord, SOURCE_FILE_INPUT
 		srcX = int( x[i] / DH + 0.5 ) + originalX - frontNX + halo; 
 		srcY = int( y[i] / DH + 0.5 ) + originalY - frontNY + halo; 
 
-#define SourceTerrain
+//#define SourceTerrain
 #ifdef SourceTerrain
 		DZ = coord.z[INDEX( srcX, srcY, 4)] - coord.z[INDEX( srcX, srcY, 3)];
 		terrain = DZ * double( NZ - 1 ) - abs( Depth );
@@ -1049,10 +1049,10 @@ void interp_momentRate( long long npts,
 
 
 __GLOBAL__
-void addSource( WAVE W,  
+void addSource( WAVE hW,  
 				MOMENT_RATE momentRateSlice, 
 				long long * srcIndex, int npts,
-				int gaussI, int gaussJ, int gaussK, float factorGauss, int _nx_, int _ny_, int _nz_, int flagSurf )
+				int gaussI, int gaussJ, int gaussK, float factorGauss, int _nx_, int _ny_, int _nz_, int flagSurf, float DT )
 {
 	
 #ifdef GPU_CUDA
@@ -1083,19 +1083,20 @@ void addSource( WAVE W,
 		}
 		//V = Jac[idx] * DH * DH * DH;
 		//V = -1.0 / V;
-		W.Txx[idx] -= momentRateSlice.Mxx[i] * factorGauss;
-		W.Tyy[idx] -= momentRateSlice.Myy[i] * factorGauss;
-		W.Tzz[idx] -= momentRateSlice.Mzz[i] * factorGauss;
-		W.Txy[idx] -= momentRateSlice.Mxy[i] * factorGauss;
-		W.Txz[idx] -= momentRateSlice.Mxz[i] * factorGauss;
-		W.Tyz[idx] -= momentRateSlice.Myz[i] * factorGauss;
+		//printf( "factorGauss = %f\n", factorGauss  );
+		hW.Txx[idx] -= momentRateSlice.Mxx[i] * factorGauss * DT;
+		hW.Tyy[idx] -= momentRateSlice.Myy[i] * factorGauss * DT;
+		hW.Tzz[idx] -= momentRateSlice.Mzz[i] * factorGauss * DT;
+		hW.Txy[idx] -= momentRateSlice.Mxy[i] * factorGauss * DT;
+		hW.Txz[idx] -= momentRateSlice.Mxz[i] * factorGauss * DT;
+		hW.Tyz[idx] -= momentRateSlice.Myz[i] * factorGauss * DT;
 	END_CALCULATE1D( ) 
 	
 }
 
 
 __GLOBAL__
-void addSource1( WAVE W,  
+void addSource1( WAVE hW,  
 				MOMENT_RATE momentRateSlice, 
 				long long * srcIndex, int npts, float DT )
 {
@@ -1112,12 +1113,12 @@ void addSource1( WAVE W,
 		idx = srcIndex[i];
 		//V = Jac[idx] * DH * DH * DH;
 		//V = -1.0 / V;
-		W.Txx[idx] -= DT * momentRateSlice.Mxx[i];
-		W.Tyy[idx] -= DT * momentRateSlice.Myy[i];
-		W.Tzz[idx] -= DT * momentRateSlice.Mzz[i];
-		W.Txy[idx] -= DT * momentRateSlice.Mxy[i];
-		W.Txz[idx] -= DT * momentRateSlice.Mxz[i];
-		W.Tyz[idx] -= DT * momentRateSlice.Myz[i];
+		hW.Txx[idx] -= momentRateSlice.Mxx[i] * DT;
+		hW.Tyy[idx] -= momentRateSlice.Myy[i] * DT;
+		hW.Tzz[idx] -= momentRateSlice.Mzz[i] * DT;
+		hW.Txy[idx] -= momentRateSlice.Mxy[i] * DT;
+		hW.Txz[idx] -= momentRateSlice.Mxz[i] * DT;
+		hW.Tyz[idx] -= momentRateSlice.Myz[i] * DT;
 	END_CALCULATE1D( ) 
 	
 }
@@ -1126,7 +1127,7 @@ void addSource1( WAVE W,
 void addMomenteRate(   
 		GRID grid, 
 		SOURCE_FILE_INPUT src_in, 
-		WAVE W, FLOAT * Jac, 
+		WAVE hW, FLOAT * Jac, 
 		long long * srcIndex, MOMENT_RATE momentRate, MOMENT_RATE momentRateSlice, 
 		int it, int irk, float DT, float DH, float * gaussFactor, int nGauss, int flagSurf )
 
@@ -1186,7 +1187,7 @@ void addMomenteRate(
 	CHECK( cudaDeviceSynchronize( ) );
 #ifdef NO_SOURCE_SMOOTH
 	addSource1  <<< blocks, threads >>>
-	( W, momentRateSlice, srcIndex, npts, DT );
+	( hW, momentRateSlice, srcIndex, npts, DT );
 	CHECK( cudaDeviceSynchronize( ) );
 	
 #else
@@ -1199,9 +1200,11 @@ void addMomenteRate(
 			{
 				gPos = ( gaussI + nGauss ) + ( gaussJ + nGauss ) * lenGauss + ( gaussK + nGauss ) * lenGauss * lenGauss;
 				factorGauss = gaussFactor[gPos];
-				addSource  <<< blocks, threads >>>
-				( W, momentRateSlice, srcIndex, npts, gaussI, gaussJ, gaussK, 
-				_nx_, _ny_, _nz_, factorGauss, flagSurf );
+				addSource<<< blocks, threads >>>
+				( hW,  
+				momentRateSlice, 
+				srcIndex, npts,
+				gaussI, gaussJ, gaussK, factorGauss, _nx_, _ny_, _nz_, flagSurf, DT );
 				CHECK( cudaDeviceSynchronize( ) );
 			}
 		}
@@ -1214,11 +1217,12 @@ void addMomenteRate(
 	( npts, momentRate, momentRateSlice, t_weight, srcIt );
 #ifdef NO_SOURCE_SMOOTH
 	addSource1 
-	( W, momentRateSlice, srcIndex, npts, DT );
+	( hW, momentRateSlice, srcIndex, npts, DT );
+	
 #ifdef GPU_CUDA
 	CHECK( cudaDeviceSynchronize( ) );
 #endif
-	
+
 #else
 
 	for( gaussK = - nGauss ; gaussK < nGauss + 1; gaussK ++ )
@@ -1230,8 +1234,8 @@ void addMomenteRate(
 				gPos = ( gaussI + nGauss ) + ( gaussJ + nGauss ) * lenGauss + ( gaussK + nGauss ) * lenGauss * lenGauss;
 				factorGauss = gaussFactor[gPos];
 				addSource 
-				( W, momentRateSlice, srcIndex, npts, gaussI, gaussJ, gaussK, 
-				_nx_, _ny_, _nz_, factorGauss, flagSurf );
+				( hW, momentRateSlice, srcIndex, npts, gaussI, gaussJ, gaussK, 
+				_nx_, _ny_, _nz_, factorGauss, flagSurf, DT );
 				CHECK( cudaDeviceSynchronize( ) );
 			}
 		}

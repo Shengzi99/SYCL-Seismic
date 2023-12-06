@@ -8,6 +8,9 @@
 *
 ================================================================*/
 #include "header.h"
+#ifdef SYCL
+	#include "sycl/sycl.hpp"
+#endif
 
 void allocAuxPML( int nPML, int N1, int N2, AUX * h_Aux, AUX * Aux, AUX * t_Aux, AUX * m_Aux )
 {
@@ -95,13 +98,13 @@ void allocPML( GRID grid, AUX4 *Aux4_1, AUX4 *Aux4_2, MPI_BORDER border )
 	memset( ( void * )Aux4_2, 0, sizeof( AUX4 ) );
 
 
-	if ( border.isx1 && nPML >= nx ) { printf( "The PML layer(nPML) just bigger than nx(%d)\n", nPML, nx );  MPI_Abort( MPI_COMM_WORLD, 130 );}
-	if ( border.isy1 && nPML >= ny ) { printf( "The PML layer(nPML) just bigger than ny(%d)\n", nPML, ny );  MPI_Abort( MPI_COMM_WORLD, 130 );}
-	if ( border.isz1 && nPML >= nz ) { printf( "The PML layer(nPML) just bigger than nz(%d)\n", nPML, nz );  MPI_Abort( MPI_COMM_WORLD, 130 );}
+	if ( border.isx1 && nPML >= nx ) { printf( "The PML layer(%d) just bigger than nx(%d)\n", nPML, nx );  MPI_Abort( MPI_COMM_WORLD, 130 );}
+	if ( border.isy1 && nPML >= ny ) { printf( "The PML layer(%d) just bigger than ny(%d)\n", nPML, ny );  MPI_Abort( MPI_COMM_WORLD, 130 );}
+	if ( border.isz1 && nPML >= nz ) { printf( "The PML layer(%d) just bigger than nz(%d)\n", nPML, nz );  MPI_Abort( MPI_COMM_WORLD, 130 );}
                                                                                                                                      
-	if ( border.isx2 && nPML >= nx ) { printf( "The PML layer(nPML) just bigger than nx(%d)\n", nPML, nx );  MPI_Abort( MPI_COMM_WORLD, 130 );}
-	if ( border.isy2 && nPML >= ny ) { printf( "The PML layer(nPML) just bigger than ny(%d)\n", nPML, ny );  MPI_Abort( MPI_COMM_WORLD, 130 );}
-	if ( border.isz2 && nPML >= nz ) { printf( "The PML layer(nPML) just bigger than nz(%d)\n", nPML, nz );  MPI_Abort( MPI_COMM_WORLD, 130 );}
+	if ( border.isx2 && nPML >= nx ) { printf( "The PML layer(%d) just bigger than nx(%d)\n", nPML, nx );  MPI_Abort( MPI_COMM_WORLD, 130 );}
+	if ( border.isy2 && nPML >= ny ) { printf( "The PML layer(%d) just bigger than ny(%d)\n", nPML, ny );  MPI_Abort( MPI_COMM_WORLD, 130 );}
+	if ( border.isz2 && nPML >= nz ) { printf( "The PML layer(%d) just bigger than nz(%d)\n", nPML, nz );  MPI_Abort( MPI_COMM_WORLD, 130 );}
 
 	if ( border.isx1 ) allocAuxPML( nPML, ny, nz, &( Aux4_1->h_Aux_x ), &( Aux4_1->Aux_x ), &( Aux4_1->t_Aux_x ), &( Aux4_1->m_Aux_x ) );
 	if ( border.isy1 ) allocAuxPML( nPML, nx, nz, &( Aux4_1->h_Aux_y ), &( Aux4_1->Aux_y ), &( Aux4_1->t_Aux_y ), &( Aux4_1->m_Aux_y ) );
@@ -590,7 +593,14 @@ void pml_deriv_z(
 }
 
 
-void pmlDeriv( GRID grid, WAVE h_W, WAVE W, CONTRAVARIANT_FLOAT con, MEDIUM_FLOAT medium, AUX4 Aux4_1, AUX4 Aux4_2, PML_ALPHA pml_alpha, PML_BETA pml_beta, PML_D pml_d, MPI_BORDER border, int FB1, int FB2, int FB3, float DT )
+bool aux4_dev_init=false;
+void pmlDeriv( GRID grid, WAVE h_W, WAVE W, CONTRAVARIANT_FLOAT con, MEDIUM_FLOAT medium, AUX4 Aux4_1, AUX4 Aux4_2, PML_ALPHA pml_alpha, PML_BETA pml_beta, PML_D pml_d, MPI_BORDER border, int FB1, int FB2, int FB3, float DT 
+#ifdef SYCL
+			   ,WAVE h_W_device, WAVE W_device, CONTRAVARIANT_FLOAT con_device, MEDIUM_FLOAT medium_device, AUX4 Aux4_1_device, AUX4 Aux4_2_device, 
+			   PML_ALPHA pml_alpha_device, PML_BETA pml_beta_device, PML_D pml_d_device,
+			   sycl::queue &Q
+#endif
+			)
 
 {
 	int _nx_ = grid._nx_;
@@ -636,7 +646,6 @@ void pmlDeriv( GRID grid, WAVE h_W, WAVE W, CONTRAVARIANT_FLOAT con, MEDIUM_FLOA
 	if ( border.isy1 )  pml_deriv_y<<< blockY, thread >>>( h_W, W, Aux4_1.h_Aux_y, Aux4_1.Aux_y, ET_X, ET_Y, ET_Z, medium, pml_alpha_y, pml_beta_y, pml_d_y, nPML, _nx_, _ny_, _nz_, 0, rDH, FB2, DT );
 	if ( border.isz1 )  pml_deriv_z<<< blockZ, thread >>>( h_W, W, Aux4_1.h_Aux_z, Aux4_1.Aux_z, ZT_X, ZT_Y, ZT_Z, medium, pml_alpha_z, pml_beta_z, pml_d_z, nPML, _nx_, _ny_, _nz_, 0, rDH, FB3, DT );
 
-
 	if ( border.isx2 )  pml_deriv_x<<< blockX, thread >>>( h_W, W, Aux4_2.h_Aux_x, Aux4_2.Aux_x, XI_X, XI_Y, XI_Z, medium, pml_alpha_x, pml_beta_x, pml_d_x, nPML, _nx_, _ny_, _nz_, 1, rDH, FB1, DT );
 	if ( border.isy2 )  pml_deriv_y<<< blockY, thread >>>( h_W, W, Aux4_2.h_Aux_y, Aux4_2.Aux_y, ET_X, ET_Y, ET_Z, medium, pml_alpha_y, pml_beta_y, pml_d_y, nPML, _nx_, _ny_, _nz_, 1, rDH, FB2, DT );
 #ifndef FREE_SURFACE
@@ -646,12 +655,38 @@ void pmlDeriv( GRID grid, WAVE h_W, WAVE W, CONTRAVARIANT_FLOAT con, MEDIUM_FLOA
 	CHECK( cudaDeviceSynchronize( ));
 	
 
-#else
+#elif defined SYCL
+	XI_X = con_device.xi_x; XI_Y = con_device.xi_y; XI_Z = con_device.xi_z;
+	ET_X = con_device.et_x; ET_Y = con_device.et_y; ET_Z = con_device.et_z;
+	ZT_X = con_device.zt_x; ZT_Y = con_device.zt_y; ZT_Z = con_device.zt_z;
+
+	pml_alpha_x = pml_alpha_device.x; pml_beta_x = pml_beta_device.x; pml_d_x = pml_d_device.x;
+	pml_alpha_y = pml_alpha_device.y; pml_beta_y = pml_beta_device.y; pml_d_y = pml_d_device.y;
+	pml_alpha_z = pml_alpha_device.z; pml_beta_z = pml_beta_device.z; pml_d_z = pml_d_device.z;
+
+	if ( border.isx1 )  pml_deriv_x_sycl( h_W_device, W_device, Aux4_1_device.h_Aux_x, Aux4_1_device.Aux_x, XI_X, XI_Y, XI_Z, medium_device, pml_alpha_x, pml_beta_x, pml_d_x, nPML, _nx_, _ny_, _nz_, 0, rDH, FB1, DT, Q);
+	if ( border.isy1 )  pml_deriv_y_sycl( h_W_device, W_device, Aux4_1_device.h_Aux_y, Aux4_1_device.Aux_y, ET_X, ET_Y, ET_Z, medium_device, pml_alpha_y, pml_beta_y, pml_d_y, nPML, _nx_, _ny_, _nz_, 0, rDH, FB2, DT, Q);
+	if ( border.isz1 )  pml_deriv_z_sycl( h_W_device, W_device, Aux4_1_device.h_Aux_z, Aux4_1_device.Aux_z, ZT_X, ZT_Y, ZT_Z, medium_device, pml_alpha_z, pml_beta_z, pml_d_z, nPML, _nx_, _ny_, _nz_, 0, rDH, FB3, DT, Q);
+
+	if ( border.isx2 )  pml_deriv_x_sycl( h_W_device, W_device, Aux4_2_device.h_Aux_x, Aux4_2_device.Aux_x, XI_X, XI_Y, XI_Z, medium_device, pml_alpha_x, pml_beta_x, pml_d_x, nPML, _nx_, _ny_, _nz_, 1, rDH, FB1, DT, Q);
+	if ( border.isy2 )  pml_deriv_y_sycl( h_W_device, W_device, Aux4_2_device.h_Aux_y, Aux4_2_device.Aux_y, ET_X, ET_Y, ET_Z, medium_device, pml_alpha_y, pml_beta_y, pml_d_y, nPML, _nx_, _ny_, _nz_, 1, rDH, FB2, DT, Q);
+#ifndef FREE_SURFACE
+	if ( border.isz2 )  pml_deriv_z_sycl( h_W_device, W_device, Aux4_2_device.h_Aux_z, Aux4_2_device.Aux_z, ZT_X, ZT_Y, ZT_Z, medium_device, pml_alpha_z, pml_beta_z, pml_d_z, nPML, _nx_, _ny_, _nz_, 1, rDH, FB3, DT, Q);
+#endif
+
+#else //GPU_CUDA
+
+	XI_X = con.xi_x; XI_Y = con.xi_y; XI_Z = con.xi_z;
+	ET_X = con.et_x; ET_Y = con.et_y; ET_Z = con.et_z;
+	ZT_X = con.zt_x; ZT_Y = con.zt_y; ZT_Z = con.zt_z;
+
+	pml_alpha_x = pml_alpha.x; pml_beta_x = pml_beta.x; pml_d_x = pml_d.x;
+	pml_alpha_y = pml_alpha.y; pml_beta_y = pml_beta.y; pml_d_y = pml_d.y;
+	pml_alpha_z = pml_alpha.z; pml_beta_z = pml_beta.z; pml_d_z = pml_d.z;
 
 	if ( border.isx1 )  pml_deriv_x( h_W, W, Aux4_1.h_Aux_x, Aux4_1.Aux_x, XI_X, XI_Y, XI_Z, medium, pml_alpha_x, pml_beta_x, pml_d_x, nPML, _nx_, _ny_, _nz_, 0, rDH, FB1, DT );
 	if ( border.isy1 )  pml_deriv_y( h_W, W, Aux4_1.h_Aux_y, Aux4_1.Aux_y, ET_X, ET_Y, ET_Z, medium, pml_alpha_y, pml_beta_y, pml_d_y, nPML, _nx_, _ny_, _nz_, 0, rDH, FB2, DT );
 	if ( border.isz1 )  pml_deriv_z( h_W, W, Aux4_1.h_Aux_z, Aux4_1.Aux_z, ZT_X, ZT_Y, ZT_Z, medium, pml_alpha_z, pml_beta_z, pml_d_z, nPML, _nx_, _ny_, _nz_, 0, rDH, FB3, DT );
-
 
 	if ( border.isx2 )  pml_deriv_x( h_W, W, Aux4_2.h_Aux_x, Aux4_2.Aux_x, XI_X, XI_Y, XI_Z, medium, pml_alpha_x, pml_beta_x, pml_d_x, nPML, _nx_, _ny_, _nz_, 1, rDH, FB1, DT );
 	if ( border.isy2 )  pml_deriv_y( h_W, W, Aux4_2.h_Aux_y, Aux4_2.Aux_y, ET_X, ET_Y, ET_Z, medium, pml_alpha_y, pml_beta_y, pml_d_y, nPML, _nx_, _ny_, _nz_, 1, rDH, FB2, DT );

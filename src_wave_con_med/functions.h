@@ -7,6 +7,9 @@
 *   Discription:
 *
 ================================================================*/
+#ifdef SYCL
+	#include "sycl/sycl.hpp"
+#endif
 #ifndef __FUNCTIONS__
 #define __FUNCTIONS__
 
@@ -104,18 +107,41 @@ void waveDeriv( GRID grid, WAVE h_W, WAVE W, CONTRAVARIANT_FLOAT con, MEDIUM_FLO
 #ifdef PML
 	PML_BETA pml_beta,
 #endif
-	int FB1, int FB2, int FB3, float DT );
+	int FB1, int FB2, int FB3, float DT
+#ifdef SYCL
+	,WAVE h_W_device, WAVE W_device, CONTRAVARIANT_FLOAT con_device, MEDIUM_FLOAT medium_device, 
+ #ifdef PML
+	PML_BETA pml_beta_device,
+ #endif
+	sycl::queue &Q
+#endif
+    );
 
 void freeSurfaceDeriv( GRID grid, WAVE h_W, WAVE W, CONTRAVARIANT_FLOAT con, 	
 	MEDIUM_FLOAT medium, FLOAT * Jac, Mat3x3 _rDZ_DX, Mat3x3 _rDZ_DY, 
 #ifdef PML
 	PML_BETA pml_beta,
 #endif
-	int FB1, int FB2, int FB3, float DT );
+	int FB1, int FB2, int FB3, float DT
+#ifdef SYCL
+	,WAVE h_W_device, WAVE W_device, CONTRAVARIANT_FLOAT con_device,
+	MEDIUM_FLOAT medium_device, FLOAT *Jac_device, Mat3x3 _rDZ_DX_device, Mat3x3 _rDZ_DY_device, 
+ #ifdef PML
+	PML_BETA pml_beta_device,
+ #endif
+	sycl::queue &Q
+#endif
+	);
 
 void pmlFreeSurfaceDeriv( GRID grid,
 	WAVE h_W, WAVE W, CONTRAVARIANT_FLOAT con, MEDIUM_FLOAT medium, AUX4 Aux4_1, AUX4 Aux4_2, 
-	Mat3x3 _rDZ_DX, Mat3x3 _rDZ_DY, PML_D pml_d, MPI_BORDER border, int FB1, int FB2, float DT );
+	Mat3x3 _rDZ_DX, Mat3x3 _rDZ_DY, PML_D pml_d, MPI_BORDER border, int FB1, int FB2, float DT 
+#ifdef SYCL
+	,WAVE h_W_device, WAVE W_device, CONTRAVARIANT_FLOAT con_device, MEDIUM_FLOAT medium_device, AUX4 Aux4_1_device, AUX4 Aux4_2_device, 
+	Mat3x3 _rDZ_DX_device, Mat3x3 _rDZ_DY_device, PML_D pml_d_device,
+	sycl::queue &Q
+#endif
+	);
 
 
 
@@ -143,7 +169,15 @@ void pmlDeriv(
 	CONTRAVARIANT_FLOAT con,
 	MEDIUM_FLOAT medium, AUX4 Aux4_1, AUX4 Aux4_2,	
 	PML_ALPHA pml_alpha, PML_BETA pml_beta, PML_D pml_d,
-	MPI_BORDER border, int FB1, int FB2, int FB3, float DT );
+	MPI_BORDER border, int FB1, int FB2, int FB3, float DT 
+#ifdef SYCL
+	,WAVE h_W_device, WAVE W_device, 
+	CONTRAVARIANT_FLOAT con_device, MEDIUM_FLOAT medium_device,
+	AUX4 Aux4_1_device, AUX4 Aux4_2_device, 
+	PML_ALPHA pml_alpha_device, PML_BETA pml_beta_device, PML_D pml_d_device,
+	sycl::queue &Q
+#endif
+	);
 
 void pmlRk( GRID grid, MPI_BORDER border, int irk, AUX4 Aux4_1, AUX4 Aux4_2);
 
@@ -217,8 +251,7 @@ void freeSliceData_cpu( GRID grid, SLICE slice, SLICE_DATA sliceDataCpu );
 void allocSendRecv( GRID grid, MPI_NEIGHBOR mpiNeighbor, SEND_RECV_DATA_FLOAT * sr );
 void freeSendRecv( MPI_NEIGHBOR mpiNeighbor, SEND_RECV_DATA_FLOAT sr );
 
-void mpiSendRecv( GRID grid, MPI_Comm comm_cart, MPI_NEIGHBOR mpiNeighbor, 
-WAVE W, SEND_RECV_DATA_FLOAT sr );
+void mpiSendRecv( GRID grid, MPI_Comm comm_cart, MPI_NEIGHBOR mpiNeighbor, WAVE W, SEND_RECV_DATA_FLOAT sr );
 void mpiSendRecvJac( GRID grid, MPI_Comm comm_cart, MPI_NEIGHBOR mpiNeighbor, float * jac, SEND_RECV_DATA_FLOAT sr );
 
 void allocatePGV( GRID grid, PGV * pgv );

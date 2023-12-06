@@ -241,7 +241,16 @@ void freeSurfaceDeriv(
 #ifdef PML
 	PML_BETA pml_beta,
 #endif
-	int FB1, int FB2, int FB3, float DT )							
+	int FB1, int FB2, int FB3, float DT
+#ifdef SYCL
+	,WAVE h_W_device, WAVE W_device, CONTRAVARIANT_FLOAT con_device,
+	MEDIUM_FLOAT medium_device, FLOAT *Jac_device, Mat3x3 _rDZ_DX_device, Mat3x3 _rDZ_DY_device, 
+ #ifdef PML
+	PML_BETA pml_beta_device,
+ #endif
+	sycl::queue &Q
+#endif
+	)							
 {
 	int _nx_ = grid._nx_;
 	int _ny_ = grid._ny_;
@@ -263,19 +272,28 @@ void freeSurfaceDeriv(
 
 	free_surface_deriv <<< blocks, threads >>>
 	( h_W, W, con, medium, Jac, _rDZ_DX, _rDZ_DY, 
-#ifdef PML
+ #ifdef PML
 	pml_beta,
-#endif
+ #endif
 	_nx_, _ny_, _nz_, rDH, FB1, FB2, FB3, DT );
 
-#else
+#elif defined SYCL
+
+	free_surface_deriv_sycl
+	( h_W_device, W_device, con_device, medium_device, Jac_device, _rDZ_DX_device, _rDZ_DY_device, 
+ #ifdef PML
+	pml_beta_device,
+ #endif
+	_nx_, _ny_, _nz_, rDH, FB1, FB2, FB3, DT, Q);
+
+#else //GPU_CUDA
 
 	free_surface_deriv
 	( h_W, W, con, medium, Jac, _rDZ_DX, _rDZ_DY, 
-#ifdef PML
+ #ifdef PML
 	pml_beta,
-#endif
-	_nx_, _ny_, _nz_, rDH, FB1, FB2, FB3, DT );
+ #endif
+	_nx_, _ny_, _nz_, rDH, FB1, FB2, FB3, DT);
 
 
 #endif //GPU_CUDA

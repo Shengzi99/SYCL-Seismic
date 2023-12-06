@@ -7,7 +7,6 @@
 *   Discription:
 *
 ================================================================*/
-
 #include "header.h"
 __GLOBAL__ 
 void pml_free_surface_x(		 									
@@ -241,7 +240,16 @@ void pmlFreeSurfaceDeriv( GRID grid, WAVE h_W, WAVE W,
 						  CONTRAVARIANT_FLOAT con, MEDIUM_FLOAT medium, 
 						  AUX4 Aux4_1, AUX4 Aux4_2, 
 						  Mat3x3 _rDZ_DX, Mat3x3 _rDZ_DY,	
-						  PML_D pml_d, MPI_BORDER border, int FB1, int FB2, float DT )
+						  PML_D pml_d, MPI_BORDER border, int FB1, int FB2, float DT 
+#ifdef SYCL
+						  ,WAVE h_W_device, WAVE W_device, 
+						  CONTRAVARIANT_FLOAT con_device, MEDIUM_FLOAT medium_device, 
+						  AUX4 Aux4_1_device, AUX4 Aux4_2_device, 
+						  Mat3x3 _rDZ_DX_device, Mat3x3 _rDZ_DY_device, 
+						  PML_D pml_d_device,
+						  sycl::queue &Q
+#endif
+						  )
 {
 	int _nx_ = grid._nx_;
 	int _ny_ = grid._ny_;
@@ -306,7 +314,49 @@ void pmlFreeSurfaceDeriv( GRID grid, WAVE h_W, WAVE W,
 						medium, _rDZ_DX, _rDZ_DY,				
 						pml_d_y, nPML, 
 						_nx_, _ny_, _nz_, 1, rDH, FB2, DT );
-#else
+#elif defined SYCL
+	ZT_X = con_device.zt_x; ZT_Y = con_device.zt_y; ZT_Z = con_device.zt_z;
+	pml_d_x = pml_d_device.x;
+	pml_d_y = pml_d_device.y;
+
+	if ( border.isx1 ) pml_free_surface_x_sycl
+					  ( h_W_device, W_device, 
+						Aux4_1_device.h_Aux_x, Aux4_1_device.Aux_x,	
+						ZT_X, ZT_Y, ZT_Z, 
+						medium_device, _rDZ_DX_device, _rDZ_DY_device,	
+						pml_d_x, nPML, 
+						_nx_, _ny_, _nz_, 0, rDH, FB1, DT, Q );
+
+	if ( border.isy1 ) pml_free_surface_y_sycl
+					  ( h_W_device, W_device, 
+						Aux4_1_device.h_Aux_y, Aux4_1_device.Aux_y,	
+						ZT_X, ZT_Y, ZT_Z, 
+						medium_device, _rDZ_DX_device, _rDZ_DY_device,				
+						pml_d_y, nPML, 
+						_nx_, _ny_, _nz_, 0, rDH, FB2, DT, Q );
+
+	if ( border.isx2 ) pml_free_surface_x_sycl
+	                  ( h_W_device, W_device, 
+						Aux4_2_device.h_Aux_x, Aux4_2_device.Aux_x,	
+						ZT_X, ZT_Y, ZT_Z, 
+						medium_device, _rDZ_DX_device, _rDZ_DY_device,	
+						pml_d_x, nPML, 
+						_nx_, _ny_, _nz_, 1, rDH, FB1, DT, Q );
+
+	if ( border.isy2 ) pml_free_surface_y_sycl
+					  ( h_W_device, W_device, 
+						Aux4_2_device.h_Aux_y, Aux4_2_device.Aux_y,	
+						ZT_X, ZT_Y, ZT_Z, 
+						medium_device, _rDZ_DX_device, _rDZ_DY_device,	
+						pml_d_y, nPML, 
+						_nx_, _ny_, _nz_, 1, rDH, FB2, DT, Q );
+
+#else //GPU_CUDA
+
+	ZT_X = con.zt_x; ZT_Y = con.zt_y; ZT_Z = con.zt_z;
+	pml_d_x = pml_d.x;
+	pml_d_y = pml_d.y;
+
 	if ( border.isx1 ) pml_free_surface_x
 					  ( h_W, W, 
 						Aux4_1.h_Aux_x, Aux4_1.Aux_x,	

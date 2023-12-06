@@ -14,7 +14,7 @@
 
 #define pointsPerBlockX 6000
 #define pointsPerBlockY 6000
-#define extendPoint 50
+#define extendPoint 10
 
 
 #define errorNegativeElevation -32768
@@ -32,15 +32,12 @@ void calculateCutLonLat( GRID grid, PJ * P,  PJ_DIRECTION PD, PJ_COORD pj_LonLat
 
 	
 
-
 	double leftDis  = - ( _originalX + extendPoint ) * grid.DH;
 	double rightDis =   ( ( _NX_ - _originalX ) + extendPoint ) * grid.DH;
 	
 	double downDis  = - ( _originalY + extendPoint ) * grid.DH;
 	double upDis    =   ( ( _NY_ - _originalY ) + extendPoint ) * grid.DH; 
 	
-	//PJ_XY xy = { leftDis, downDis };
-	//printf( "leftDis: %f, downDis: %f\n", leftDis, downDis );
 
 	PJ_XY leftDownXY, leftUpXY, rightDown, rightUpXY;
 
@@ -55,16 +52,63 @@ void calculateCutLonLat( GRID grid, PJ * P,  PJ_DIRECTION PD, PJ_COORD pj_LonLat
 	int i = 0;
 	for ( i = 0; i < 4; i ++ )
 		pj_LonLat[i].xy = xy[i];
-
-	//PJ_COORD leftDownLonLat, leftUpLonLat, rightDownLonLat, rightUpLonLat;
 	
 	proj_trans_array( P, PD, 4, pj_LonLat );
 	
+	/*
 	for ( i = 0; i < 4; i ++ )
 		printf( "longitude: %lf, latitude: %lf\n", pj_LonLat[i].lp.lam * RADIAN2DEGREE, pj_LonLat[i].lp.phi * RADIAN2DEGREE );
-	
+	*/
 		
 }
+
+
+void calculateCutLonLatLoc( GRID grid, PJ * P,  PJ_DIRECTION PD, PJ_COORD pj_LonLat[4] )
+{		
+
+	int I, J;
+	int frontNX = grid.frontNX;
+	int frontNY = grid.frontNY;
+	int originalX = grid.originalX;	
+	int originalY = grid.originalY;	
+	int _nx_ = grid._nx_;
+	int _ny_ = grid._ny_;
+
+	float DH = grid.DH;
+
+	I = frontNX;
+	double leftDis  = ( I - HALO ) * DH - originalX * DH; 
+	I = frontNX + _nx_;
+	double rightDis = ( I - HALO ) * DH - originalX * DH; 	
+
+	J = frontNY;
+	double downDis  = ( J - HALO ) * DH - originalY * DH; 
+	J = frontNY + _ny_;
+	double upDis    = ( J - HALO ) * DH - originalY * DH; 
+	
+
+	//printf( "frontNX = %d, frontNY = %d\n", frontNX, frontNY  );
+	
+
+	PJ_XY leftDownXY, leftUpXY, rightDown, rightUpXY;
+
+	leftDownXY.x = leftDis;	leftDownXY.y = downDis;
+	leftUpXY.x   = leftDis;	leftUpXY.y   = upDis;
+
+	rightDown.x = rightDis;		rightDown.y  = downDis;
+	rightUpXY.x   = rightDis;	rightUpXY.y	 = upDis;
+
+	PJ_XY xy[4] = { leftDownXY, leftUpXY, rightDown, rightUpXY};
+	
+	int i = 0;
+	for ( i = 0; i < 4; i ++ )
+		pj_LonLat[i].xy = xy[i];
+	
+	proj_trans_array( P, PD, 4, pj_LonLat );
+	
+}
+
+
 
 //Eastern Hemisphere
 void readSRTM90( PARAMS params, float * totalTerrain )
@@ -154,64 +198,10 @@ void readSRTM90( PARAMS params, float * totalTerrain )
 	}
 
 
-//#else
-    
-/*
-	for ( lon = lonStart; lon <= lonEnd; lon += 5 )
-	{
-		
-		j = 0;
-	    for ( lat = latStart; lat <= latEnd; lat += 5 )
-		{
-
-			memset( srtm90FileName, 0, sizeof( char ) * 512 );
-			sprintf( srtm90FileName, "%s/srtm_%dN%dE.bin", params.TerrainDir, lat, lon );
-			FILE * fp = fopen( srtm90FileName, "rb"  );
-			if ( NULL == fp )
-			{	
-				printf( "There is no such file %s\n", srtm90FileName );
-				exit( 1 );
-			}
-			int startI = i * ( pointsPerBlockX - 1);	
-			int startJ = j * ( pointsPerBlockY - 1);	
-			
-			int endX = ( i + 1 ) * ( pointsPerBlockX - 1 ) + 1;
-			int endY = ( j + 1 ) * ( pointsPerBlockY - 1 ) + 1;
-			int ii, jj;
-			long long pos, index;
-			//int pos = ( i + j * blockX ) * pointsPerBlockX * pointsPerBlockY;
-			//fread( &totalTerrain[pos], sizeof( float ), pointsPerBlockX * pointsPerBlockY,fp);			
-			fread( oneBlockTerrain, sizeof( float ), pointsPerBlockX * pointsPerBlockY, fp );
-
-			FOR_LOOP2D( ii, jj, 0, pointsPerBlockX - 1, 0, pointsPerBlockY - 1 ) 
-
-					index = Index2D( ii, jj, pointsPerBlockX, pointsPerBlockY );
-					//pos = ( startI + ii ) + ( startJ + jj ) * totalPointX;
-					pos = Index2D( startI + ii, startJ + jj,  totalPointX, totalPointY );
-					totalTerrain[pos] = oneBlockTerrain[index];
-			END_LOOP2D( )
-
-
-			//for ( int j = 0; j < pointsPerBlockY; j ++  )
-			//{
-			//	printf( "\n"  );
-			//	for ( int i = 0; i < pointsPerBlockX; i ++ )
-			//	{
-			//		printf( "%e ", totalTerrain[i + j * pointsPerBlockX]  );
-			//	}
-			//}
-			fclose( fp );
-			j ++;
-		}
-		i ++;
-	}
-*/
 
 	
-//#endif //LON_FAST
 
 	free( oneBlockTerrain );
-	//printf( "i = %d, j = %d\n", i, j );
 
 }
 
@@ -234,7 +224,7 @@ void resetTotalTerrain( PARAMS params, float * totalTerrain  )
 }
 
 
-void callibrateTotalTerrain( PARAMS params, float * totalTerrain )
+void callibrateTotalTerrain( PARAMS params, GRID grid, float * totalTerrain, float lon_0, float lat_0 )
 {
 
 	int totalPointX = ( pointsPerBlockX - 1 ) * params.blockX + 1;
@@ -252,7 +242,73 @@ void callibrateTotalTerrain( PARAMS params, float * totalTerrain )
 
 	memcpy( newTotalTerrain, totalTerrain, sizeof( float ) * totalPointX * totalPointY );
 
-	FOR_LOOP2D( i, j, 1, totalPointX - 1, 1, totalPointY - 1 )
+	
+	PJ_CONTEXT * C;
+	PJ * P;
+	
+	C = proj_context_create( );
+	
+	char projStr[256];//""
+	sprintf( projStr, "+proj=aeqd +lon_0=%lf +lat_0=%lf +x_0=0.0 +y_0=0.0 +ellps=WGS84", lon_0, lat_0 );
+
+	//printf( projStr  );
+	//printf( "\n"  );
+	P = proj_create( C, projStr );
+	if ( NULL == P )
+	{
+		printf( "Failed to create projection\n"  );
+	}
+
+	PJ_COORD pj_LonLat[4];
+	double Lon[4], Lat[4];
+
+
+	calculateCutLonLatLoc( grid, P, PJ_INV, pj_LonLat );
+
+	proj_destroy( P );
+	proj_context_destroy( C );
+
+	float maxLon = -1000.0, maxLat = -1000.0;
+	float minLon =  1000.0, minLat =  1000.0;
+	for ( i = 0; i < 4; i ++ )
+	{
+		Lon[i] = pj_LonLat[i].lp.lam * RADIAN2DEGREE;
+		Lat[i] = pj_LonLat[i].lp.phi * RADIAN2DEGREE;
+		if ( maxLon <= Lon[i] )
+			maxLon = Lon[i];
+		if ( maxLat <= Lat[i] )
+			maxLat = Lat[i];
+		if ( minLon >= Lon[i] )
+			minLon = Lon[i];
+		if ( minLat >= Lat[i] )
+			minLat = Lat[i];
+		//printf( "longitude: %lf, latitude: %lf\n", Lon[i], Lat[i] );
+	}
+
+	
+
+	double lonStart = params.lonStart;
+	double latStart = params.latStart;
+	//printf( "lonStart = %f, latStart = %f\n", lonStart, latStart );
+
+	double deltaLon = double( degreePerBlcokX *  params.blockX ) / double( totalPointX );
+	double deltaLat = double( degreePerBlcokY *  params.blockY ) / double( totalPointY );
+	//printf( "deltaLon = %f, deltaLat = %f\n", deltaLon, deltaLat );
+
+	int expandPoint = 10;
+
+	//printf( "maxLon = %f, minLon = %f\n", maxLon, minLon );
+	//printf( "maxLat = %f, minLat = %f\n", maxLat, minLat );
+	int	ILonStart = int( ( minLon - lonStart ) / deltaLon ) - expandPoint; 
+	int	JLatStart = int( ( minLat - latStart ) / deltaLat ) - expandPoint; 
+			
+	int	ILonEnd = int( ( maxLon - lonStart ) / deltaLon ) + expandPoint; 
+	int	JLatEnd = int( ( maxLat - latStart ) / deltaLat ) + expandPoint; 
+
+	//printf( "ILonStart = %d, ILonEnd = %d, JLatStart = %d, JLatEnd = %d\n", ILonStart, ILonEnd, JLatStart, JLatEnd  );
+
+
+	FOR_LOOP2D( i, j, ILonStart, ILonEnd, JLatStart, JLatEnd )
         index = Index2D( i, j, totalPointX, totalPointY );
 
         index1 = Index2D( i - 1, j, totalPointX, totalPointY );
@@ -274,24 +330,55 @@ void callibrateTotalTerrain( PARAMS params, float * totalTerrain )
 			newTotalTerrain[index] = ( a + b + c + d ) * 0.25;
 		}
 		
+		//newTotalTerrain[index] = 0.0;
 
 	END_LOOP2D( )
 
 	int thisRank;
 	MPI_Comm_rank( MPI_COMM_WORLD, &thisRank );
-//	if ( 0 == thisRank  )
-//	{
-//		char gradFileName[256];
-//		sprintf( gradFileName, "%s/gradTotalTerrain.bin", params.TerrainDir );
-//		FILE * gradTerrainFile = fopen( gradFileName, "wb"  );
-//		fwrite( gradTotalTerrain, sizeof( float ), totalPointX * totalPointY, gradTerrainFile );
-//		fclose( gradTerrainFile );
-//	}
 	
 	memcpy( totalTerrain, newTotalTerrain, sizeof( float ) * totalPointX * totalPointY );
 
+
+#ifdef Terrain_Smooth
+	double sum = 0;
+	long long ii, jj;
+	int nGauss = 5;	
+
+	int n = 0;
+	double * Dg = ( double * ) malloc( sizeof( double ) * ( 2 * nGauss + 1 )  );
+		
+	double ra = nGauss * 0.5;
+	for ( n = 0; n < ( 2 * nGauss + 1 ); n ++ )
+	{
+		Dg[n] = GAUSS_FUN( n - nGauss, ra, 0.0);
+	}
+	long long pos = 0;
+	FOR_LOOP2D( i, j, ILonStart, ILonEnd, JLatStart, JLatEnd )
+        index = Index2D( i, j, totalPointX, totalPointY );
+		sum = 0.0;
+		FOR_LOOP2D( ii, jj, i - nGauss, i + nGauss + 1, j - nGauss, j + nGauss + 1 )   
+			//double amp = Dg[ii + nGauss-i] * Dg[jj + nGauss-j] / 0.998750;
+			double amp = Dg[ii + nGauss-i] * Dg[jj + nGauss-j] / 0.996768;
+			//printf( "D1 = %f, D2 = %f\n", Dg[ii + nGauss-i] * Dg[jj + nGauss-j]  );
+			pos = Index2D( ii, jj, totalPointX, totalPointY);
+			sum += amp * totalTerrain[pos];
+		END_LOOP2D( )
+		//printf( "sum = %f\n", sum );
+		newTotalTerrain[index] = sum;//totalTerrain[pos];
+	END_LOOP2D( )
+	memcpy( totalTerrain, newTotalTerrain, sizeof( float ) * totalPointX * totalPointY );
+#endif
+
+
+
+
 	free( gradTotalTerrain );
 	free( newTotalTerrain );
+
+
+
+
 
 }
 
@@ -435,7 +522,7 @@ double interp2d(double x[2], double y[2], double z[4], double x_, double y_ )
 }
 
 
-void terrainInterp( PARAMS params, GRID grid, float * terrain, float * totalTerrain, LONLAT LonLat )
+void terrainInterp( PARAMS params, GRID grid, float * terrain, float * totalTerrain, LONLAT LonLat, float lon_0, float lat_0 )
 {			
 	int totalPointX = ( pointsPerBlockX - 1 ) * params.blockX + 1;
 	int totalPointY = ( pointsPerBlockY - 1 ) * params.blockY + 1;
@@ -444,7 +531,7 @@ void terrainInterp( PARAMS params, GRID grid, float * terrain, float * totalTerr
 	int _ny_ = grid._ny_;
 
 	int i = 0, j = 0;
-	long long index = 0;
+	long long index = 0, idx = 0;
 
 	double lonStart = params.lonStart;
 	double latStart = params.latStart;
@@ -452,13 +539,7 @@ void terrainInterp( PARAMS params, GRID grid, float * terrain, float * totalTerr
 	double deltaLon = double( degreePerBlcokX *  params.blockX ) / double( totalPointX );
 	double deltaLat = double( degreePerBlcokY *  params.blockY ) / double( totalPointY );
 
-	//cout << "blockX = " << params.blockX << " ";
-	//cout << "blockY = " << params.blockY << " ";
-	//cout << "deltaLon = " << deltaLon << " ";
-	//cout << "deltaLat = " << deltaLat << endl;
-
 	double x_; double y_; double x1; double y1; double x2; double y2; 
-	//double f11; double f12; double f21; double f22;
 
 	double x[2] = { 0.0 };
 	double y[2] = { 0.0 };
@@ -466,11 +547,74 @@ void terrainInterp( PARAMS params, GRID grid, float * terrain, float * totalTerr
 	
 	int I = 0, J = 0, pos = 0;
 
-	FOR_LOOP2D( i, j, 0, _nx_, 0, _ny_ )
-		index = Index2D( i, j, _nx_, _ny_ );
 
-		x_ = LonLat.lon[index];		
-		y_ = LonLat.lat[index];		
+
+
+
+	int nGauss = 5;
+
+	float DH = grid.DH;
+
+	int frontNX = grid.frontNX;
+	int frontNY = grid.frontNY;
+
+	int originalX = grid.originalX;	
+	int originalY = grid.originalY;	
+
+
+	int e_nx = _nx_ + 2 * nGauss;
+	int e_ny = _ny_ + 2 * nGauss;
+	long long e_num = e_nx * e_ny; 
+
+
+
+	PJ_CONTEXT * C;
+	PJ * P;
+	
+	C = proj_context_create( );
+	if ( NULL == C )
+	{
+		printf( "Failed to context C\n"  );
+	}
+	
+	char projStr[256];//""
+	sprintf( projStr, "+proj=aeqd +lon_0=%lf +lat_0=%lf +x_0=0.0 +y_0=0.0 +ellps=WGS84", lon_0, lat_0 );
+
+	//printf( projStr  );
+	//printf( "\n"  );
+	P = proj_create( C, projStr );
+	if ( NULL == P )
+	{
+		printf( "Failed to create projection\n"  );
+	}
+
+
+	PJ_COORD * pj_coord;
+	pj_coord = ( PJ_COORD * )malloc( sizeof( PJ_COORD ) * e_num );
+	if ( NULL == pj_coord )
+	{
+		printf( "can not malloc PJ_COORD\n"  );
+	}
+
+	float * exTerrain = ( float * )malloc( sizeof( float ) * e_nx * e_ny );
+
+	FOR_LOOP2D( i, j, -nGauss, _nx_ + nGauss, -nGauss, _ny_ + nGauss )
+		index = Index2D( i + nGauss, j + nGauss, e_nx, e_ny );
+		I = frontNX + i;
+		J = frontNY + j;
+		pj_coord[index].xy.x = ( I - HALO ) * DH - originalX * DH;
+		pj_coord[index].xy.y = ( J - HALO ) * DH - originalY * DH;
+	END_LOOP2D( )
+	
+
+	proj_trans_array( P, PJ_INV, e_num, pj_coord );
+
+
+	FOR_LOOP2D( i, j, 0, e_nx, 0, e_ny )
+		index = Index2D( i, j, e_nx, e_ny );
+
+		x_ = pj_coord[index].lp.lam * RADIAN2DEGREE;
+		y_ = pj_coord[index].lp.phi * RADIAN2DEGREE;
 
 		I = int( ( x_ - lonStart ) / deltaLon ); 
 		J = int( ( y_ - latStart ) / deltaLat ); 
@@ -478,6 +622,9 @@ void terrainInterp( PARAMS params, GRID grid, float * terrain, float * totalTerr
 		x1 = I * deltaLon + lonStart;
 		y1 = J * deltaLat + latStart;
 
+		//printf( "lon = %f, lat = %f\n", x_, y_ );
+		
+		
 		x2 = x1 + deltaLon;
 		y2 = y1 + deltaLat;
 
@@ -486,7 +633,6 @@ void terrainInterp( PARAMS params, GRID grid, float * terrain, float * totalTerr
 		y[0] = y1;
 		y[1] = y2;
 
-		
 		pos = Index2D( I, J, totalPointX, totalPointY );
 		//f11 = totalTerrain[pos]; //A
 		z[0] = totalTerrain[pos]; //A
@@ -503,8 +649,62 @@ void terrainInterp( PARAMS params, GRID grid, float * terrain, float * totalTerr
 		//f22 = totalTerrain[pos]; //D
 		z[3] = totalTerrain[pos]; //D
 						
-		terrain[index] = interp2d( x, y, z, x_, y_ );
+		exTerrain[index] = interp2d( x, y, z, x_, y_ );
+		
+		if ( ( i - nGauss ) >=0 && ( i - nGauss ) < _nx_ && ( j - nGauss ) >=0 && ( j - nGauss ) < _ny_ )
+		{
+			index = Index2D( i, j, e_nx, e_ny );
+			idx = Index2D( i - nGauss, j - nGauss, _nx_, _ny_ );
+			terrain[idx] = exTerrain[index];
+			
+		}
+
 	END_LOOP2D( )
+
+
+	free( pj_coord );
+	proj_destroy( P );
+	proj_context_destroy( C );
+
+
+
+
+#ifdef Terrain_Smooth
+	double sum = 0;
+	long long ii, jj;
+	
+	int n = 0;
+	double * Dg = ( double * ) malloc( sizeof( double ) * ( 2 * nGauss + 1 )  );
+		
+	double ra = nGauss * 0.5;
+	for ( n = 0; n < ( 2 * nGauss + 1 ); n ++ )
+	{
+		Dg[n] = GAUSS_FUN( n - nGauss, ra, 0.0);
+	}
+	
+
+	FOR_LOOP2D( i, j, 0, e_nx, 0, e_ny )
+		if ( ( i - nGauss ) >=0 && ( i - nGauss ) < _nx_ && ( j - nGauss ) >=0 && ( j - nGauss ) < _ny_ )
+		{
+			sum = 0;
+			FOR_LOOP2D( ii, jj, i - nGauss, i + nGauss + 1, j - nGauss, j + nGauss + 1 )   
+			//	double amp = Dg[ii + nGauss-i] * Dg[jj + nGauss-j] / 0.998750;
+				double amp = Dg[ii + nGauss-i] * Dg[jj + nGauss-j] / 0.996768;
+				pos = Index2D( ii, jj, e_nx, e_ny );
+				sum += amp * exTerrain[pos];
+			END_LOOP2D( )
+
+			idx = Index2D( i - nGauss, j - nGauss, _nx_, _ny_ );
+			terrain[idx] = sum;
+			
+		}
+
+	END_LOOP2D( )
+#endif
+
+
+	
+	free( exTerrain );	
 
 }
 
@@ -532,6 +732,7 @@ void preprocessTerrain( PARAMS params, MPI_Comm comm_cart, MPI_COORD thisMPICoor
 	//if ( 1 == params.SRTM90 && thisMPICoord.Z == grid.PZ - 1 )
 	if ( 1 == params.SRTM90 )
 	{
+		//printf( "======X = %d, Y = %d, Z = %d========\n", thisMPICoord.X, thisMPICoord.Y, thisMPICoord.Z  );
 		float *  totalTerrain;
 		int totalPointX = ( pointsPerBlockX - 1 ) * params.blockX + 1;
 		int totalPointY = ( pointsPerBlockY - 1 ) * params.blockY + 1;
@@ -543,7 +744,7 @@ void preprocessTerrain( PARAMS params, MPI_Comm comm_cart, MPI_COORD thisMPICoor
 #ifdef ERROR_ELEVATION
 		resetTotalTerrain( params, totalTerrain );
 #endif
-		callibrateTotalTerrain( params, totalTerrain );
+		callibrateTotalTerrain( params, grid, totalTerrain, lon_0, lat_0 );
 
 		LONLAT LonLat;
 		LonLat.lon = ( double * ) malloc( sizeof( double ) * _nx_ * _ny_  );
@@ -554,29 +755,8 @@ void preprocessTerrain( PARAMS params, MPI_Comm comm_cart, MPI_COORD thisMPICoor
 
 		projTrans( lon_0, lat_0, grid, coord, LonLat );
 
-		//cout << "==================" << endl;
-		//MPI_Barrier( comm_cart );	
-	//	cout << "========================" << endl;
-		terrainInterp( params, grid, terrain, totalTerrain, LonLat );
-
-		/*
-		int maxValue = -100000;
-	
-		
-		for ( j = 0; j < _ny_; j ++ )
-			for ( i = 0; i < _nx_; i ++ )
-			{
-				index = i + j * _nx_;
-				if ( terrain[index] > maxValue )
-					maxValue = terrain[index];
-				//if ( DZ[index] > maxValue )
-				//	maxValue = DZ[index];
-				//if ( DZ[index] < minValue )
-				//	minValue = DZ[index];
-			}
-		
-		cout << "terrain max = " << maxValue << endl;
-		*/
+		terrainInterp( params, grid, terrain, totalTerrain, LonLat, lon_0, lat_0 );
+//		terrainInterp( params, grid, terrain, totalTerrain, LonLat );
 
 		if ( thisMPICoord.X == 0 && thisMPICoord.Y == 0 && thisMPICoord.Z == grid.PZ - 1 )
 		{
@@ -590,7 +770,6 @@ void preprocessTerrain( PARAMS params, MPI_Comm comm_cart, MPI_COORD thisMPICoor
 			fclose( totalTerrainFile );
 		}
 		free( totalTerrain );
-		//MPI_Barrier( comm_cart );	
 		if ( thisMPICoord.Z == grid.PZ - 1 )
 		{
 
@@ -603,6 +782,7 @@ void preprocessTerrain( PARAMS params, MPI_Comm comm_cart, MPI_COORD thisMPICoor
 
 			sprintf( lonFileName,     "%s/lon_mpi_%d_%d_%d.bin", params.OUT, thisMPICoord.X, thisMPICoord.Y, thisMPICoord.Z );
 			sprintf( latFileName,	  "%s/lat_mpi_%d_%d_%d.bin", params.OUT, thisMPICoord.X, thisMPICoord.Y, thisMPICoord.Z );
+
 			sprintf( terrainFileName, "%s/terrain_mpi_%d_%d_%d.bin", params.OUT, thisMPICoord.X, thisMPICoord.Y, thisMPICoord.Z );
 
 			lonFile = fopen( lonFileName, "wb" );
@@ -624,16 +804,12 @@ void preprocessTerrain( PARAMS params, MPI_Comm comm_cart, MPI_COORD thisMPICoor
 			fclose( latFile );
 			fclose( terrainFile );
 		}
-		/*
-		*/
-		
 		free( LonLat.lon );
 		free( LonLat.lat );
 
 	}
 
 	MPI_Barrier( MPI_COMM_WORLD );
-	//float * DZ = ( float * ) malloc( sizeof( float ) * _nx_ * _ny_ );
 	
 	
 	double Depth = params.Depth * 1e3;
@@ -642,22 +818,6 @@ void preprocessTerrain( PARAMS params, MPI_Comm comm_cart, MPI_COORD thisMPICoor
 
 	int K = 0;
 	int frontNZ = grid.frontNZ;
-	//float minValue = 1000000;
-	//float maxValue = -1000000;
-	//for ( j = 0; j < _ny_; j ++ )
-	//	for ( i = 0; i < _nx_; i ++ )
-	//	{
-	//		index = i + j * _nx_;
-	//		DZ[index] = ( terrain[index] + abs( Depth ) ) / ( NZ - 1 );
-	////		if ( terrain[index] > maxValue )
-	////			maxValue = terrain[index];
-	////		if ( DZ[index] > maxValue )
-	////			maxValue = DZ[index];
-	////		if ( DZ[index] < minValue )
-	////			minValue = DZ[index];
-	//	}
-		
-	//cout << "DZ max = " << maxValue << ", DZ min = " << minValue << endl;
 	double DZ = 0.0;
 	int nx = grid.nx;
 	int ny = grid.ny;

@@ -49,6 +49,11 @@ using namespace std;
 
 #include "functions.h"
 
+#ifdef SYCL
+#include "device_sycl/functions_sycl.h"
+#endif
+#include <sys/time.h>
+#include <cmath>
 
 #endif // !HEADER_H
 

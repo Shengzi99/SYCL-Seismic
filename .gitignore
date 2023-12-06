@@ -5,5 +5,8 @@ CompareData/*
 run.slurm
 
 # VSCode settings
-.vscode
+.VSCode
 
+# tmp files
+env_test*
+env.sh

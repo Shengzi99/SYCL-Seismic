@@ -1,8 +1,8 @@
 {
-    "TMAX": 0.3,
+    "TMAX": 15.0,
     "DT": 0.003,
     "DH": 50.0,
-    "NX": 200,
+    "NX": 400,
     "NY": 400,
     "NZ": 200,
     "Depth(km)": 10,
@@ -14,8 +14,8 @@
     "sliceZ": -1,
     "sliceFreeSurf": 1,
     "PX": 1,
-    "PY": 1,
-    "PZ": 1,
+    "PY": 3,
+    "PZ": 2,
     "sourceX": 99,
     "sourceY": 199,
     "sourceZ": 179,
@@ -33,7 +33,12 @@
     "out": "CompareData/CGFDM3D-CJMVS",
     "gpu_nodes": {
         "teslagpus": [
-            0
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
         ]
     },
     "TerrainTif": "./terrainTif",

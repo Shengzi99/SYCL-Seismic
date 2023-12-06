@@ -9,6 +9,9 @@
 ================================================================*/
 
 #include "header.h"
+#ifdef SYCL
+	#include "sycl/sycl.hpp"
+#endif
 
 #ifdef PML
 #define TIMES_PML_BETA_X * pml_beta_x
@@ -250,19 +253,19 @@ void wave_deriv( WAVE h_W, WAVE W, CONTRAVARIANT_FLOAT con, MEDIUM_FLOAT medium,
 		Tyz2 = DOT_PRODUCT2D( et_z, et_y, Vy_et, Vz_et ) * mu;
 		Tyz3 = DOT_PRODUCT2D( zt_z, zt_y, Vy_zt, Vz_zt ) * mu;
 
-		h_WVx  	= ( Vx1  + Vx2  + Vx3  ) * DT;							
-		h_WVy  	= ( Vy1  + Vy2  + Vy3  ) * DT;							
-		h_WVz  	= ( Vz1  + Vz2  + Vz3  ) * DT;							
-		h_WTxx 	= ( Txx1 + Txx2 + Txx3 ) * DT;						
-		h_WTyy 	= ( Tyy1 + Tyy2 + Tyy3 ) * DT;						
-		h_WTzz 	= ( Tzz1 + Tzz2 + Tzz3 ) * DT;						
-		h_WTxy 	= ( Txy1 + Txy2 + Txy3 ) * DT;						
-		h_WTxz 	= ( Txz1 + Txz2 + Txz3 ) * DT;						
-		h_WTyz 	= ( Tyz1 + Tyz2 + Tyz3 ) * DT;						
+		h_WVx  	= ( Vx1  + Vx2  + Vx3  ) * DT;
+		h_WVy  	= ( Vy1  + Vy2  + Vy3  ) * DT;
+		h_WVz  	= ( Vz1  + Vz2  + Vz3  ) * DT;
+		h_WTxx 	= ( Txx1 + Txx2 + Txx3 ) * DT;
+		h_WTyy 	= ( Tyy1 + Tyy2 + Tyy3 ) * DT;
+		h_WTzz 	= ( Tzz1 + Tzz2 + Tzz3 ) * DT;
+		h_WTxy 	= ( Txy1 + Txy2 + Txy3 ) * DT;
+		h_WTxz 	= ( Txz1 + Txz2 + Txz3 ) * DT;
+		h_WTyz 	= ( Tyz1 + Tyz2 + Tyz3 ) * DT;
 
-		h_W.Vx [index] 	= h_WVx ;							
-		h_W.Vy [index] 	= h_WVy ;							
-		h_W.Vz [index] 	= h_WVz ;							
+		h_W.Vx [index] 	= h_WVx ;
+		h_W.Vy [index] 	= h_WVy ;
+		h_W.Vz [index] 	= h_WVz ;
 		h_W.Txx[index] 	= h_WTxx;						
 		h_W.Tyy[index] 	= h_WTyy;						
 		h_W.Tzz[index] 	= h_WTzz;						
@@ -279,7 +282,15 @@ void waveDeriv( GRID grid, WAVE h_W, WAVE W, CONTRAVARIANT_FLOAT con, MEDIUM_FLO
 #ifdef PML
 	PML_BETA pml_beta,
 #endif
-	int FB1, int FB2, int FB3, float DT )	
+	int FB1, int FB2, int FB3, float DT
+#ifdef SYCL
+	,WAVE h_W_device, WAVE W_device, CONTRAVARIANT_FLOAT con_device, MEDIUM_FLOAT medium_device, 
+ #ifdef PML
+	PML_BETA pml_beta_device,
+ #endif
+	sycl::queue &Q
+#endif
+	)	
 {
 	int _nx_ = grid._nx_;
 	int _ny_ = grid._ny_;
@@ -312,6 +323,15 @@ void waveDeriv( GRID grid, WAVE h_W, WAVE W, CONTRAVARIANT_FLOAT con, MEDIUM_FLO
 	_nx_, _ny_, _nz_, rDH, FB1, FB2, FB3, DT );	
 
 	CHECK( cudaDeviceSynchronize( ) );
+
+#elif defined SYCL
+
+	wave_deriv_sycl 
+	( h_W_device, W_device, con_device, medium_device, 
+#ifdef PML
+	pml_beta_device,
+#endif //PML
+	_nx_, _ny_, _nz_, rDH, FB1, FB2, FB3, DT, Q);
 
 #else   //GPU_CUDA
 

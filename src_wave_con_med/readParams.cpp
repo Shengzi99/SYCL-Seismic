@@ -51,166 +51,166 @@ void getParams( PARAMS * params)
 
 	
 	
-	if (item = cJSON_GetObjectItem(object, "TMAX"))
+	if ( (item = cJSON_GetObjectItem(object, "TMAX")) )
 		params->TMAX = item->valuedouble;
     
-	if (item = cJSON_GetObjectItem(object, "DT"))
+	if ( (item = cJSON_GetObjectItem(object, "DT")) )
 		params->DT = item->valuedouble;
 	
-	if (item = cJSON_GetObjectItem(object, "DH"))
+	if ( (item = cJSON_GetObjectItem(object, "DH")) )
 		params->DH = item->valuedouble;
     
-	if (item = cJSON_GetObjectItem(object, "NX"))
+	if ( (item = cJSON_GetObjectItem(object, "NX")) )
 		params->NX = item->valueint;
-	if (item = cJSON_GetObjectItem(object, "NY"))
+	if ( (item = cJSON_GetObjectItem(object, "NY")) )
 		params->NY = item->valueint;
-	if (item = cJSON_GetObjectItem(object, "NZ"))
+	if ( (item = cJSON_GetObjectItem(object, "NZ")) )
 		params->NZ = item->valueint;
 
-	if (item = cJSON_GetObjectItem(object, "PX"))
+	if ( (item = cJSON_GetObjectItem(object, "PX")) )
 		params->PX = item->valueint;
-	if (item = cJSON_GetObjectItem(object, "PY"))
+	if ( (item = cJSON_GetObjectItem(object, "PY")) )
 		params->PY = item->valueint;
-	if (item = cJSON_GetObjectItem(object, "PZ"))
+	if ( (item = cJSON_GetObjectItem(object, "PZ")) )
 		params->PZ = item->valueint;
 
-	if (item = cJSON_GetObjectItem(object, "centerX"))
+	if ( (item = cJSON_GetObjectItem(object, "centerX")) )
 		params->centerX = item->valueint;
-	if (item = cJSON_GetObjectItem(object, "centerY"))
+	if ( (item = cJSON_GetObjectItem(object, "centerY")) )
 		params->centerY = item->valueint;
 
-	if (item = cJSON_GetObjectItem(object, "centerLongitude"))
+	if ( (item = cJSON_GetObjectItem(object, "centerLongitude")) )
 		params->centerLongitude = item->valuedouble;
-	if (item = cJSON_GetObjectItem(object, "centerLatitude"))
+	if ( (item = cJSON_GetObjectItem(object, "centerLatitude")) )
 		params->centerLatitude = item->valuedouble;
 
-	if (item = cJSON_GetObjectItem(object, "IT_SKIP"))
+	if ( (item = cJSON_GetObjectItem(object, "IT_SKIP")) )
 		params->IT_SKIP = item->valueint;
     
-	if (item = cJSON_GetObjectItem(object, "sliceX"))
+	if ( (item = cJSON_GetObjectItem(object, "sliceX")) )
 		params->sliceX = item->valueint;
-	if (item = cJSON_GetObjectItem(object, "sliceY"))
+	if ( (item = cJSON_GetObjectItem(object, "sliceY")) )
 		params->sliceY = item->valueint;
-	if (item = cJSON_GetObjectItem(object, "sliceZ"))
+	if ( (item = cJSON_GetObjectItem(object, "sliceZ")) )
 		params->sliceZ = item->valueint;
 	
-	if (item = cJSON_GetObjectItem(object, "sliceFreeSurf"))
+	if ( (item = cJSON_GetObjectItem(object, "sliceFreeSurf")) )
 		params->sliceFreeSurf = item->valueint;
 
-	if (item = cJSON_GetObjectItem(object, "nPML"))
+	if ( (item = cJSON_GetObjectItem(object, "nPML")) )
 		params->nPML = item->valueint;
 
-	if (item = cJSON_GetObjectItem(object, "gauss_hill"))
+	if ( (item = cJSON_GetObjectItem(object, "gauss_hill")) )
 		params->gauss_hill = item->valueint;
-	if (item = cJSON_GetObjectItem(object, "useTerrain"))
+	if ( (item = cJSON_GetObjectItem(object, "useTerrain")) )
 		params->useTerrain = item->valueint;
-	if (item = cJSON_GetObjectItem(object, "useMedium"))
+	if ( (item = cJSON_GetObjectItem(object, "useMedium")) )
 		params->useMedium = item->valueint;
-	if (item = cJSON_GetObjectItem(object, "useMultiSource"))
+	if ( (item = cJSON_GetObjectItem(object, "useMultiSource")) )
 		params->useMultiSource = item->valueint;
-	if (item = cJSON_GetObjectItem(object, "useSingleSource(ricker)"))
+	if ( (item = cJSON_GetObjectItem(object, "useSingleSource(ricker)")) )
 		params->useSingleSource = item->valueint;
 
-	if (item = cJSON_GetObjectItem(object, "rickerfc"))
+	if ( (item = cJSON_GetObjectItem(object, "rickerfc")) )
 		params->rickerfc = item->valuedouble;
 
-	if (item = cJSON_GetObjectItem(object, "ShenModel"))
+	if ( (item = cJSON_GetObjectItem(object, "ShenModel")) )
 		params->ShenModel = item->valueint;
-	if (item = cJSON_GetObjectItem(object, "Crust_1Medel"))
+	if ( (item = cJSON_GetObjectItem(object, "Crust_1Medel")) )
 		params->Crust_1Medel = item->valueint;
 
 
-	if (item = cJSON_GetObjectItem(object, "itSlice"))
+	if ( (item = cJSON_GetObjectItem(object, "itSlice")) )
 		params->itSlice = item->valueint;
-	if (item = cJSON_GetObjectItem(object, "itStep"))
+	if ( (item = cJSON_GetObjectItem(object, "itStep")) )
 		params->itStep = item->valueint;
 
-	if (item = cJSON_GetObjectItem(object, "waveOutput"))
+	if ( (item = cJSON_GetObjectItem(object, "waveOutput")) )
 		strcpy( params->waveOutput, item->valuestring);
-	if (item = cJSON_GetObjectItem(object, "sliceName"))
+	if ( (item = cJSON_GetObjectItem(object, "sliceName")) )
 		strcpy( params->sliceName , item->valuestring);
 
 
-	if (item = cJSON_GetObjectItem(object, "itStart"))
+	if ( (item = cJSON_GetObjectItem(object, "itStart")) )
 		params->itStart = item->valueint;
-	if (item = cJSON_GetObjectItem(object, "itEnd"))
+	if ( (item = cJSON_GetObjectItem(object, "itEnd")) )
 		params->itEnd = item->valueint;
 
-	if (item = cJSON_GetObjectItem(object, "igpu"))
+	if ( (item = cJSON_GetObjectItem(object, "igpu")) )
 		params->igpu = item->valueint;
 
 
-	if (item = cJSON_GetObjectItem(object, "OUT"))
+	if ( (item = cJSON_GetObjectItem(object, "OUT")) )
 		strcpy( params->OUT, item->valuestring);
 	
-	if (item = cJSON_GetObjectItem(object, "TerrainDir"))
+	if ( (item = cJSON_GetObjectItem(object, "TerrainDir")) )
 		strcpy( params->TerrainDir, item->valuestring);
 
-	if (item = cJSON_GetObjectItem(object, "SRTM90"))
+	if ( (item = cJSON_GetObjectItem(object, "SRTM90")) )
 		params->SRTM90 = item->valueint;
 	
-	if (item = cJSON_GetObjectItem(object, "lonStart"))
+	if ( (item = cJSON_GetObjectItem(object, "lonStart")) )
 		params->lonStart = item->valueint;
-	if (item = cJSON_GetObjectItem(object, "latStart"))
+	if ( (item = cJSON_GetObjectItem(object, "latStart")) )
 		params->latStart = item->valueint;
 	
 	
-	if (item = cJSON_GetObjectItem(object, "blockX"))
+	if ( (item = cJSON_GetObjectItem(object, "blockX")) )
 		params->blockX = item->valueint;
-	if (item = cJSON_GetObjectItem(object, "blockY"))
+	if ( (item = cJSON_GetObjectItem(object, "blockY")) )
 		params->blockY = item->valueint;
 	
 
 	
 	
 	
-	if (item = cJSON_GetObjectItem(object, "Depth(km)"))
+	if ( (item = cJSON_GetObjectItem(object, "Depth(km)")) )
 		params->Depth = item->valuedouble;
 
 
-	if (item = cJSON_GetObjectItem(object, "MLonStart"))
+	if ( (item = cJSON_GetObjectItem(object, "MLonStart")) )
 		params->MLonStart = item->valuedouble;
-	if (item = cJSON_GetObjectItem(object, "MLatStart"))
+	if ( (item = cJSON_GetObjectItem(object, "MLatStart")) )
 		params->MLatStart = item->valuedouble;
-	if (item = cJSON_GetObjectItem(object, "MLonEnd"))
+	if ( (item = cJSON_GetObjectItem(object, "MLonEnd")) )
 		params->MLonEnd = item->valuedouble;
-	if (item = cJSON_GetObjectItem(object, "MLatEnd"))
+	if ( (item = cJSON_GetObjectItem(object, "MLatEnd")) )
 		params->MLatEnd = item->valuedouble;
-	if (item = cJSON_GetObjectItem(object, "MLonStep"))
+	if ( (item = cJSON_GetObjectItem(object, "MLonStep")) )
 		params->MLonStep  = item->valuedouble;
-	if (item = cJSON_GetObjectItem(object, "MLatStep"))
+	if ( (item = cJSON_GetObjectItem(object, "MLatStep")) )
 	 	params->MLatStep  = item->valuedouble;
 
 
 
-	if (item = cJSON_GetObjectItem(object, "CrustLonStep"))
+	if ( (item = cJSON_GetObjectItem(object, "CrustLonStep")) )
 		params->CrustLonStep = item->valuedouble;
-	if (item = cJSON_GetObjectItem(object, "CrustLatStep"))
+	if ( (item = cJSON_GetObjectItem(object, "CrustLatStep")) )
 	 	params->CrustLatStep = item->valuedouble;
 
-	if (item = cJSON_GetObjectItem(object, "MVeticalStep"))
+	if ( (item = cJSON_GetObjectItem(object, "MVeticalStep")) )
 		params->MVeticalStep = item->valuedouble;
 
-	if (item = cJSON_GetObjectItem(object, "MediumDir"))
+	if ( (item = cJSON_GetObjectItem(object, "MediumDir")) )
 		strcpy( params->MediumDir, item->valuestring);
-	if (item = cJSON_GetObjectItem(object, "CrustDir"))
+	if ( (item = cJSON_GetObjectItem(object, "CrustDir")) )
 		strcpy( params->crustDir, item->valuestring);
 
 	//cout << "LonStart = " << params->MLonStart << ", LatStart = " << params->MLatStart << endl;
 	//cout << "LonEnd = "   << params->MLonEnd   << ", LatEnd = "   << params->MLatEnd << endl;
 	//cout << "LonStep = "  << params->MLonStep  << ", LatStep = "  << params->MLatStep << endl;
 	
-	if (item = cJSON_GetObjectItem(object, "sourceX"))
+	if ( (item = cJSON_GetObjectItem(object, "sourceX")) )
 		params->sourceX = item->valueint;
-	if (item = cJSON_GetObjectItem(object, "sourceY"))
+	if ( (item = cJSON_GetObjectItem(object, "sourceY")) )
 		params->sourceY = item->valueint;
-	if (item = cJSON_GetObjectItem(object, "sourceZ"))
+	if ( (item = cJSON_GetObjectItem(object, "sourceZ")) )
 		params->sourceZ = item->valueint;
 
 	
-	if (item = cJSON_GetObjectItem(object, "sourceFile"))
+	if ( (item = cJSON_GetObjectItem(object, "sourceFile")) )
 		strcpy( params->sourceFile, item->valuestring);
-	if (item = cJSON_GetObjectItem(object, "sourceDir"))
+	if ( (item = cJSON_GetObjectItem(object, "sourceDir")) )
 		strcpy( params->sourceDir, item->valuestring);
 	
 

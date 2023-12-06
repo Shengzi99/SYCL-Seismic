@@ -136,7 +136,7 @@ int readStationIndex( GRID grid )
 
 	int stationCnt= 0;
 
-	if (objArray = cJSON_GetObjectItem(object, "station(point)"))
+	if ( (objArray = cJSON_GetObjectItem(object, "station(point)")) )
 	{
 		stationCnt = cJSON_GetArraySize( objArray );
 	}
@@ -241,7 +241,7 @@ void initStationIndex( GRID grid, STATION station )
 
 	int stationCnt= 0;
 
-	if (objArray = cJSON_GetObjectItem(object, "station(point)"))
+	if ( (objArray = cJSON_GetObjectItem(object, "station(point)")) )
 	{
 		stationCnt = cJSON_GetArraySize( objArray );
 		//printf( "stationCnt = %d\n", stationCnt );
@@ -313,7 +313,7 @@ void initStationIndex( GRID grid, STATION station )
 
 }
 
-#ifdef GPU_CUDA
+
 void stationCPU2GPU( STATION station, STATION station_cpu, int stationNum )
 {
 	int size = sizeof( int ) * stationNum * 3;
@@ -324,9 +324,10 @@ void stationCPU2GPU( STATION station, STATION station_cpu, int stationNum )
 	//}
 
 	//printf( "=============size = %d =========\n", size );
+#ifdef GPU_CUDA
 	CHECK( Memcpy( station.X, station_cpu.X, size, cudaMemcpyHostToDevice ) );
-}
 #endif
+}
 
 
 __GLOBAL__
@@ -391,13 +392,14 @@ void storageStation( GRID grid, int NT, int stationNum, STATION station, WAVE W,
 	( stationNum, station, W, _nx_, _ny_, _nz_, NT, it );
 #endif
 }
-#ifdef GPU_CUDA
+
 void stationGPU2CPU( STATION station, STATION station_cpu, int stationNum, int NT )
 {
 	long long sizeWave = sizeof( float ) * NT * stationNum * WAVESIZE;
+#ifdef GPU_CUDA
 	CHECK( Memcpy( station_cpu.wave.Vx, station.wave.Vx, sizeWave, cudaMemcpyDeviceToHost ) );
-}
 #endif
+}
 
 void write( PARAMS params, GRID grid, MPI_COORD thisMPICoord, STATION station, int NT, int stationNum )
 {	

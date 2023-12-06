@@ -57,7 +57,7 @@ void init_gpu( int PX, int PY, int PZ  )
 
 	int nodeCnt = 0;
 
-	if (objArray = cJSON_GetObjectItem(object, "gpu_nodes"))
+	if ( (objArray = cJSON_GetObjectItem(object, "gpu_nodes")) )
 	{
 		nodeCnt = cJSON_GetArraySize( objArray );
 	//	printf( "nodeCnt = %d\n", nodeCnt );

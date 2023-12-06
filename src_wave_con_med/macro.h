@@ -78,34 +78,21 @@ for ( i = startI; i < endI; i ++ ) {     \
 #define Free cudaFree
 #define Memcpy cudaMemcpy
 
-
 #define __DEVICE__ __device__
 #define __GLOBAL__ __global__
-
 
 
 #define CALCULATE1D( i, startI, endI )         \
 if ( i >= startI && i < endI ) {
 #define END_CALCULATE1D( ) } 
 
-
-
 #define CALCULATE2D( i, j, startI, endI, startJ, endJ )         \
 if ( i >= ( startI ) && i < ( endI ) && j >= ( startJ ) && j < ( endJ ) ) { 
 #define END_CALCULATE2D( ) }      
 
-
 #define CALCULATE3D( i, j, k, startI, endI, startJ, endJ, startK, endK )  \
 if ( i >= ( startI ) && i < ( endI ) && j >= ( startJ ) && j < ( endJ ) && k >= ( startK ) && k < ( endK ) ) {
 #define END_CALCULATE3D( ) }
-
-
-
-
-
-#define POW2(x) ( (x) * (x) )
-#define GAUSS_FUN(t,a,t0) (exp(-POW2( ( (t) - (t0) ) / (a) )) / (a*1.772453850905516))
-
 
 
 #define CHECK(call) {                                  \
@@ -146,9 +133,21 @@ for ( i = startI; i < endI; i ++ ) {
 #define END_CALCULATE1D( ) } 
 
 
-#endif
+#endif //GPU_CUDA
 
+// #ifdef SYCL
+#define CALCULATE1D_SYCL( i, startI, endI )         \
+if ( i >= startI && i < endI ) {
+#define END_CALCULATE1D_SYCL( ) } 
 
+#define CALCULATE2D_SYCL( i, j, startI, endI, startJ, endJ )         \
+if ( i >= ( startI ) && i < ( endI ) && j >= ( startJ ) && j < ( endJ ) ) { 
+#define END_CALCULATE2D_SYCL( ) }      
+
+#define CALCULATE3D_SYCL( i, j, k, startI, endI, startJ, endJ, startK, endK )  \
+if ( i >= ( startI ) && i < ( endI ) && j >= ( startJ ) && j < ( endJ ) && k >= ( startK ) && k < ( endK ) ) {
+#define END_CALCULATE3D_SYCL( ) }
+// #endif
 
 
 #define THREE 3
